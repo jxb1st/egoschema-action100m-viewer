@@ -149,6 +149,26 @@ h1 {{
   outline: none;
 }}
 .search input:focus {{ border-color: var(--accent); }}
+.pipeline-figure {{
+  margin: 28px 0 24px;
+  padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}}
+.pipeline-figure img {{
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 6px;
+  background: #fff;
+}}
+.pipeline-figure figcaption {{
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}}
 .aggregate-card {{
   display: block;
   background: linear-gradient(135deg, rgba(177,151,252,0.08), rgba(77,171,247,0.08));
@@ -287,6 +307,11 @@ footer a:hover {{ text-decoration: underline; }}
       <div><strong>${total_cost:.2f}</strong>API cost</div>
     </div>
   </header>
+
+  <figure class="pipeline-figure">
+    <img src="assets/pipeline.png" alt="Action100M-on-EgoSchema pipeline: V-JEPA 2 segmentation, Tree-of-Captions generation, GPT-4o aggregation with Self-Refine, and the resulting annotated event tree">
+    <figcaption>End-to-end pipeline (V-JEPA 2 segmentation → Tree-of-Captions → GPT-4o aggregation with Self-Refine → annotated event tree).</figcaption>
+  </figure>
 
   <a class="aggregate-card" href="viewers/_aggregate_action_sunburst.html">
     <div class="agg-title">→ Aggregate verb-composition sunburst</div>
