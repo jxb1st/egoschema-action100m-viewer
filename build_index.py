@@ -16,7 +16,9 @@ clip_ids = sorted([p.stem for p in STAGE3.glob("*.json")])
 cards = []
 total_nodes = 0
 total_annotated = 0
-total_cost = 0.0
+all_costs = []   # per-clip cost field is actually a CUMULATIVE snapshot
+                 # (CostTracker is shared across clips in --all mode), so the
+                 # true total is max(values), not sum.
 total_duration = 0.0
 for cid in clip_ids:
     d = json.loads((STAGE3 / f"{cid}.json").read_text())
@@ -29,10 +31,9 @@ for cid in clip_ids:
         summary_brief = root["annotation"].get("summary", {}).get("brief", "")
         action_brief = root["annotation"].get("action", {}).get("brief", "")
     duration = float(d["video_duration_sec"])
-    cost = d.get("metadata", {}).get("stage3_total_api_cost_usd", 0.0)
+    all_costs.append(d.get("metadata", {}).get("stage3_total_api_cost_usd", 0.0))
     total_nodes += n_total
     total_annotated += n_ann
-    total_cost += cost
     total_duration += duration
     cards.append({
         "q_uid": cid,
@@ -42,8 +43,9 @@ for cid in clip_ids:
         "n_ann": n_ann,
         "summary_brief": summary_brief,
         "action_brief": action_brief,
-        "cost": cost,
     })
+
+total_cost = max(all_costs) if all_costs else 0.0
 
 
 def html_escape(s: str) -> str:
@@ -64,7 +66,6 @@ def card_html(c: dict) -> str:
         <span><strong>{c['duration']:.0f}s</strong></span>
         <span><strong>{c['n_total']}</strong> nodes</span>
         <span><strong>{c['n_ann']}</strong> annotated</span>
-        <span>${c['cost']:.2f}</span>
       </div>
       <div class="card-tags">
         <span class="tag">action: {action}</span>
