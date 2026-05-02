@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EgoSchema × Action100M Viewer</title>
+<style>
+:root {
+  --bg: #0f1419;
+  --panel: #1a2129;
+  --border: #2d3640;
+  --text: #e6e9ed;
+  --muted: #8a949e;
+  --accent: #4dabf7;
+  --good: #51cf66;
+  --purple: #b197fc;
+  --highlight: #ffd43b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+.wrap { max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px; }
+header { margin-bottom: 36px; }
+.home-link {
+  display: inline-block;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 20px;
+}
+.home-link:hover { color: var(--accent); }
+h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.tagline {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 800px;
+}
+.summary-stats {
+  display: flex; gap: 24px; flex-wrap: wrap;
+  padding: 16px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+.summary-stats div { color: var(--muted); }
+.summary-stats strong { color: var(--text); font-size: 17px; font-weight: 700; display: block; margin-bottom: 2px; }
+.search {
+  margin: 28px 0 18px;
+}
+.search input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+}
+.search input:focus { border-color: var(--accent); }
+.aggregate-card {
+  display: block;
+  background: linear-gradient(135deg, rgba(177,151,252,0.08), rgba(77,171,247,0.08));
+  border: 1px solid rgba(177,151,252,0.3);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 24px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.12s, transform 0.12s;
+}
+.aggregate-card:hover { border-color: var(--purple); transform: translateY(-1px); }
+.aggregate-card .agg-title { font-size: 15px; font-weight: 600; }
+.aggregate-card .agg-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+  transition: transform 0.12s ease, border-color 0.12s ease;
+  text-decoration: none;
+  color: inherit;
+}
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+.card-head {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 8px;
+}
+.card-icon {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: rgba(77,171,247,0.1);
+  color: var(--accent);
+  font-size: 11px; font-weight: 700;
+  font-family: ui-monospace, monospace;
+  flex-shrink: 0;
+}
+.card h2 {
+  margin: 0; font-size: 14px; font-weight: 600;
+  font-family: ui-monospace, monospace;
+  color: var(--text);
+}
+.card p {
+  margin: 0 0 12px; font-size: 13px; color: var(--muted);
+  flex: 1;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.card-stats {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 10px;
+}
+.card-stats strong { color: var(--text); font-weight: 600; }
+.card-tags {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px; font-weight: 500;
+  background: rgba(81,207,102,0.1);
+  color: var(--good);
+  border: 1px solid rgba(81,207,102,0.25);
+  max-width: 100%;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.card-cta {
+  display: inline-flex; align-items: center; gap: 4px;
+  color: var(--accent);
+  font-size: 13px; font-weight: 500;
+  margin-top: auto;
+}
+.card-cta::after { content: "→"; transition: transform 0.12s; }
+.card:hover .card-cta::after { transform: translateX(3px); }
+.card.hidden { display: none; }
+footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  display: flex; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+}
+footer a { color: var(--accent); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+.method {
+  margin-top: 32px;
+  padding: 18px 22px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.method h3 { margin: 0 0 10px; font-size: 14px; }
+.method p { margin: 6px 0; font-size: 13px; color: var(--muted); }
+.method code {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  background: var(--bg);
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: var(--text);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="https://jxb1st.github.io/datasets/" class="home-link">← Back to Dataset Visualizations</a>
+    <h1>EgoSchema × Action100M Viewer</h1>
+    <p class="tagline">
+      Hierarchical dense action annotation pipeline (Chen et al., 2026 — Action100M)
+      ported to 50 EgoSchema 3-minute egocentric clips. Each clip is segmented by
+      V-JEPA 2 + Ward agglomerative clustering, captioned by Llama-3.2-Vision +
+      Perception-LM, and aggregated by GPT-4o with 3-round Self-Refine. Click any
+      card to open an interactive viewer with the source video, hierarchical timeline,
+      and per-node annotations.
+    </p>
+    <div class="summary-stats">
+      <div><strong>50</strong>clips</div>
+      <div><strong>8890s</strong>total video</div>
+      <div><strong>33,290</strong>tree nodes</div>
+      <div><strong>3887</strong>GPT-4o annotated</div>
+      <div><strong>$1621.94</strong>API cost</div>
+    </div>
+  </header>
+
+  <a class="aggregate-card" href="viewers/_aggregate_action_sunburst.html">
+    <div class="agg-title">→ Aggregate verb-composition sunburst</div>
+    <div class="agg-sub">verb→object→modifier word-frequency hierarchy across all 50 clips' action.brief annotations</div>
+  </a>
+
+  <div class="search">
+    <input type="text" id="search" placeholder="Filter by clip id or summary text…">
+  </div>
+
+  <section class="grid" id="grid">
+    <a class="card" href="viewers/00faf954-74f7-4aa3-8b29-4a5dff4f9518.html">
+      <div class="card-head">
+        <span class="card-icon">00FA</span>
+        <h2 title="00faf954-74f7-4aa3-8b29-4a5dff4f9518">00faf954…</h2>
+      </div>
+      <p>A person shapes mud into bricks using a wooden mold.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>85</strong> annotated</span>
+        <span>$16.20</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Shape mud into bricks.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/0d01c24b-3574-4574-afe0-acb714c5fa8c.html">
+      <div class="card-head">
+        <span class="card-icon">0D01</span>
+        <h2 title="0d01c24b-3574-4574-afe0-acb714c5fa8c">0d01c24b…</h2>
+      </div>
+      <p>A person crafts a paper flower at a small table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>80</strong> annotated</span>
+        <span>$30.65</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Craft a paper flower.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/0f0d2135-4595-400c-8463-bee11d8dbb5d.html">
+      <div class="card-head">
+        <span class="card-icon">0F0D</span>
+        <h2 title="0f0d2135-4595-400c-8463-bee11d8dbb5d">0f0d2135…</h2>
+      </div>
+      <p>A woman packs groceries and interacts with a customer.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$33.09</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Pack groceries into a bag.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/156683f3-2761-46c2-9c89-97f4780f68d7.html">
+      <div class="card-head">
+        <span class="card-icon">1566</span>
+        <h2 title="156683f3-2761-46c2-9c89-97f4780f68d7">156683f3…</h2>
+      </div>
+      <p>A person repairs a scooter in a workshop.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>78</strong> annotated</span>
+        <span>$13.01</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Repair a scooter</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/1d37d8e5-82da-440b-8476-58dd71fea1a2.html">
+      <div class="card-head">
+        <span class="card-icon">1D37</span>
+        <h2 title="1d37d8e5-82da-440b-8476-58dd71fea1a2">1d37d8e5…</h2>
+      </div>
+      <p>A person cleans the kitchen and explores the house.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>72</strong> annotated</span>
+        <span>$49.98</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Clean the kitchen and explore the house.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/22a04ca6-5169-4af3-af0a-e7d1627abd97.html">
+      <div class="card-head">
+        <span class="card-icon">22A0</span>
+        <h2 title="22a04ca6-5169-4af3-af0a-e7d1627abd97">22a04ca6…</h2>
+      </div>
+      <p>A man prepares scrambled eggs in a messy kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$56.21</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cook scrambled eggs.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/2b1ad004-e952-45d2-8586-214ea2baf9f9.html">
+      <div class="card-head">
+        <span class="card-icon">2B1A</span>
+        <h2 title="2b1ad004-e952-45d2-8586-214ea2baf9f9">2b1ad004…</h2>
+      </div>
+      <p>A woman plays cards while feeding a lizard.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>74</strong> annotated</span>
+        <span>$5.94</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Play cards with a partner.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/2b960c7d-198c-4839-bb47-9503ddbd8964.html">
+      <div class="card-head">
+        <span class="card-icon">2B96</span>
+        <h2 title="2b960c7d-198c-4839-bb47-9503ddbd8964">2b960c7d…</h2>
+      </div>
+      <p>A person exercises and makes coffee.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>76</strong> annotated</span>
+        <span>$36.69</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Perform yoga and make coffee.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/3581bcf8-7e3e-4c02-af98-3e96c05bfa40.html">
+      <div class="card-head">
+        <span class="card-icon">3581</span>
+        <h2 title="3581bcf8-7e3e-4c02-af98-3e96c05bfa40">3581bcf8…</h2>
+      </div>
+      <p>A person is crafting bricks using clay and sand.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>84</strong> annotated</span>
+        <span>$25.55</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Make bricks from clay and sand.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/3b50beeb-5c9f-4fee-bb29-3deab94e6b4c.html">
+      <div class="card-head">
+        <span class="card-icon">3B50</span>
+        <h2 title="3b50beeb-5c9f-4fee-bb29-3deab94e6b4c">3b50beeb…</h2>
+      </div>
+      <p>A person cuts and peels dried fruits at a table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>79</strong> annotated</span>
+        <span>$23.86</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cut and peel dried fruits.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/420fa606-4ef8-4d55-9666-6a0dfd2d8675.html">
+      <div class="card-head">
+        <span class="card-icon">420F</span>
+        <h2 title="420fa606-4ef8-4d55-9666-6a0dfd2d8675">420fa606…</h2>
+      </div>
+      <p>Two men engage in card playing and note-taking at a table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$47.47</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Deal cards and write notes.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/4785bf2e-ac33-4459-8a08-2b8cefa08096.html">
+      <div class="card-head">
+        <span class="card-icon">4785</span>
+        <h2 title="4785bf2e-ac33-4459-8a08-2b8cefa08096">4785bf2e…</h2>
+      </div>
+      <p>A person organizes groceries and cleans the kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>77</strong> annotated</span>
+        <span>$17.15</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Organize and clean the kitchen.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/4aa10456-56a6-4d17-8509-c5a345b3f5a4.html">
+      <div class="card-head">
+        <span class="card-icon">4AA1</span>
+        <h2 title="4aa10456-56a6-4d17-8509-c5a345b3f5a4">4aa10456…</h2>
+      </div>
+      <p>A person cleans and examines books on the floor.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>73</strong> annotated</span>
+        <span>$43.92</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Clean and examine books</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/4c3b9dd4-d88b-4084-9173-38c5ee1dca7d.html">
+      <div class="card-head">
+        <span class="card-icon">4C3B</span>
+        <h2 title="4c3b9dd4-d88b-4084-9173-38c5ee1dca7d">4c3b9dd4…</h2>
+      </div>
+      <p>A person prepares and cooks a dish.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>139</strong> annotated</span>
+        <span>$63.06</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Prepare and cook a dish.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/52e48527-b1e4-4796-9261-ad545d9e85d1.html">
+      <div class="card-head">
+        <span class="card-icon">52E4</span>
+        <h2 title="52e48527-b1e4-4796-9261-ad545d9e85d1">52e48527…</h2>
+      </div>
+      <p>A woman cuts yellow fabric with scissors.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>86</strong> annotated</span>
+        <span>$61.49</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cut fabric with scissors.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/5e43992d-adb3-4bf0-8d8e-221b895b7c9a.html">
+      <div class="card-head">
+        <span class="card-icon">5E43</span>
+        <h2 title="5e43992d-adb3-4bf0-8d8e-221b895b7c9a">5e43992d…</h2>
+      </div>
+      <p>A person prepares and cooks a meal in a kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>71</strong> annotated</span>
+        <span>$11.68</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Prepare and cook a meal.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/604acf21-f449-48ed-b376-d3efdb392382.html">
+      <div class="card-head">
+        <span class="card-icon">604A</span>
+        <h2 title="604acf21-f449-48ed-b376-d3efdb392382">604acf21…</h2>
+      </div>
+      <p>A man welds and smooths a metal pipe.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>92</strong> annotated</span>
+        <span>$3.38</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Weld and smooth a metal pipe.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/670945d6-d6a0-4c60-89f3-d07c6da3a046.html">
+      <div class="card-head">
+        <span class="card-icon">6709</span>
+        <h2 title="670945d6-d6a0-4c60-89f3-d07c6da3a046">670945d6…</h2>
+      </div>
+      <p>A person navigates a house, interacting with items and observing surroundings.</p>
+      <div class="card-stats">
+        <span><strong>110s</strong></span>
+        <span><strong>411</strong> nodes</span>
+        <span><strong>45</strong> annotated</span>
+        <span>$9.50</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Explore and interact with household items.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/696392dd-cb55-4728-bc60-ba5fe817ede2.html">
+      <div class="card-head">
+        <span class="card-icon">6963</span>
+        <h2 title="696392dd-cb55-4728-bc60-ba5fe817ede2">696392dd…</h2>
+      </div>
+      <p>A person assembles a wooden project using glue and small blocks.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>82</strong> annotated</span>
+        <span>$18.60</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Assemble wooden blocks.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/7b904a75-44c4-43cd-bdbd-e3cb11fd8a23.html">
+      <div class="card-head">
+        <span class="card-icon">7B90</span>
+        <h2 title="7b904a75-44c4-43cd-bdbd-e3cb11fd8a23">7b904a75…</h2>
+      </div>
+      <p>A person controls a robot vacuum while another cleans the kitchen and someone else uses a phone.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>74</strong> annotated</span>
+        <span>$26.57</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Operate a robot vacuum.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/7d5b057b-bd68-47d6-ba2b-0ca8aa67d38e.html">
+      <div class="card-head">
+        <span class="card-icon">7D5B</span>
+        <h2 title="7d5b057b-bd68-47d6-ba2b-0ca8aa67d38e">7d5b057b…</h2>
+      </div>
+      <p>A woman irons various fabrics on an ironing board.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>74</strong> annotated</span>
+        <span>$55.36</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Iron various fabrics.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/7df39cbd-dde0-4a8e-8a91-719475d5fbd3.html">
+      <div class="card-head">
+        <span class="card-icon">7DF3</span>
+        <h2 title="7df39cbd-dde0-4a8e-8a91-719475d5fbd3">7df39cbd…</h2>
+      </div>
+      <p>A person is knitting at a table with various items.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>82</strong> annotated</span>
+        <span>$52.95</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Knit with yarn and crochet hook.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/8350d2b3-c0bc-45b4-9406-746c94b1e36c.html">
+      <div class="card-head">
+        <span class="card-icon">8350</span>
+        <h2 title="8350d2b3-c0bc-45b4-9406-746c94b1e36c">8350d2b3…</h2>
+      </div>
+      <p>A person organizes clothes by taking them out of a wardrobe and placing them on a bed.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>77</strong> annotated</span>
+        <span>$28.17</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Organize clothes.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/84be1093-49a1-41ad-861e-d4d313adcc0f.html">
+      <div class="card-head">
+        <span class="card-icon">84BE</span>
+        <h2 title="84be1093-49a1-41ad-861e-d4d313adcc0f">84be1093…</h2>
+      </div>
+      <p>A man paints a wooden door and board yellow.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>79</strong> annotated</span>
+        <span>$20.48</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Paint a wooden door and board.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/8782618b-0fc9-4fbb-9146-cfcd941859ef.html">
+      <div class="card-head">
+        <span class="card-icon">8782</span>
+        <h2 title="8782618b-0fc9-4fbb-9146-cfcd941859ef">8782618b…</h2>
+      </div>
+      <p>A person washes dishes in a kitchen sink.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$31.88</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Wash dishes</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/920d35a6-3fd9-4e8e-93ab-91d1ae5d8a41.html">
+      <div class="card-head">
+        <span class="card-icon">920D</span>
+        <h2 title="920d35a6-3fd9-4e8e-93ab-91d1ae5d8a41">920d35a6…</h2>
+      </div>
+      <p>A person cooks and prepares a meal in a cluttered kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>71</strong> annotated</span>
+        <span>$57.92</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cook and prepare a meal.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/974ac5d0-8221-4777-9210-67c8f007d19f.html">
+      <div class="card-head">
+        <span class="card-icon">974A</span>
+        <h2 title="974ac5d0-8221-4777-9210-67c8f007d19f">974ac5d0…</h2>
+      </div>
+      <p>A lab technician conducts experiments using pipettes and test tubes.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>80</strong> annotated</span>
+        <span>$8.82</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Transfer liquids between containers.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/9c956866-2a80-41a3-85d9-194773c3e4e0.html">
+      <div class="card-head">
+        <span class="card-icon">9C95</span>
+        <h2 title="9c956866-2a80-41a3-85d9-194773c3e4e0">9c956866…</h2>
+      </div>
+      <p>A person sews a small pouch using a sewing machine.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>73</strong> annotated</span>
+        <span>$34.40</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Sew a pouch.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/a1262146-16f5-4048-a406-6819994d3d67.html">
+      <div class="card-head">
+        <span class="card-icon">A126</span>
+        <h2 title="a1262146-16f5-4048-a406-6819994d3d67">a1262146…</h2>
+      </div>
+      <p>A person crafts a clay sculpture at a table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>73</strong> annotated</span>
+        <span>$41.70</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Shape and refine a clay sculpture.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/a3a71268-536d-4a19-99cc-c6b50b39cb71.html">
+      <div class="card-head">
+        <span class="card-icon">A3A7</span>
+        <h2 title="a3a71268-536d-4a19-99cc-c6b50b39cb71">a3a71268…</h2>
+      </div>
+      <p>Two people play a game of checkers on a wooden table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>76</strong> annotated</span>
+        <span>$53.94</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Play checkers</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/a88cabdc-ffa4-4b7f-baf1-616c5177c37e.html">
+      <div class="card-head">
+        <span class="card-icon">A88C</span>
+        <h2 title="a88cabdc-ffa4-4b7f-baf1-616c5177c37e">a88cabdc…</h2>
+      </div>
+      <p>A person washes clothes in a bathtub while intermittently watching a video on their phone.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$51.65</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Wash clothes in a bathtub.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/afa330df-24a6-43df-92eb-97cbe41a422e.html">
+      <div class="card-head">
+        <span class="card-icon">AFA3</span>
+        <h2 title="afa330df-24a6-43df-92eb-97cbe41a422e">afa330df…</h2>
+      </div>
+      <p>A person washes dishes at a kitchen sink.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>78</strong> annotated</span>
+        <span>$14.57</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Wash dishes</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/b4c5f426-53f0-4267-b88f-3da3b7641ead.html">
+      <div class="card-head">
+        <span class="card-icon">B4C5</span>
+        <h2 title="b4c5f426-53f0-4267-b88f-3da3b7641ead">b4c5f426…</h2>
+      </div>
+      <p>A woman crafts clay pots on the ground.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>76</strong> annotated</span>
+        <span>$39.04</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Craft clay pots.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/c94ea4e2-4a2b-45f9-a20a-9a1f70c92e34.html">
+      <div class="card-head">
+        <span class="card-icon">C94E</span>
+        <h2 title="c94ea4e2-4a2b-45f9-a20a-9a1f70c92e34">c94ea4e2…</h2>
+      </div>
+      <p>A person organizes and cleans books on the floor.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>78</strong> annotated</span>
+        <span>$24.51</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Organize and clean books</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/c9ed0ee8-8f4a-457e-9be8-88fb8ea16893.html">
+      <div class="card-head">
+        <span class="card-icon">C9ED</span>
+        <h2 title="c9ed0ee8-8f4a-457e-9be8-88fb8ea16893">c9ed0ee8…</h2>
+      </div>
+      <p>A person cuts and prepares cardboard for a project.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$45.45</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cut cardboard.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/ca9659f7-82dc-4350-9c4c-7fd8cd823c7e.html">
+      <div class="card-head">
+        <span class="card-icon">CA96</span>
+        <h2 title="ca9659f7-82dc-4350-9c4c-7fd8cd823c7e">ca9659f7…</h2>
+      </div>
+      <p>A person prepares a meal by adding milk and water to a pot and organizing kitchen items.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>82</strong> annotated</span>
+        <span>$43.05</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Prepare a meal and organize kitchen items.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/cc4ccc21-b36d-4ff8-80d1-3b1ba9d7f0c6.html">
+      <div class="card-head">
+        <span class="card-icon">CC4C</span>
+        <h2 title="cc4ccc21-b36d-4ff8-80d1-3b1ba9d7f0c6">cc4ccc21…</h2>
+      </div>
+      <p>A person cooks and cleans in the kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>78</strong> annotated</span>
+        <span>$29.13</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cook and clean in the kitchen.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/d092fae6-e5b7-4588-9f9c-5f878c0e453e.html">
+      <div class="card-head">
+        <span class="card-icon">D092</span>
+        <h2 title="d092fae6-e5b7-4588-9f9c-5f878c0e453e">d092fae6…</h2>
+      </div>
+      <p>A person photographs a field and interacts with a group.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>72</strong> annotated</span>
+        <span>$47.65</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Photograph and interact with a group.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/d5ea4b32-7e72-4195-82c2-257ed2e455ef.html">
+      <div class="card-head">
+        <span class="card-icon">D5EA</span>
+        <h2 title="d5ea4b32-7e72-4195-82c2-257ed2e455ef">d5ea4b32…</h2>
+      </div>
+      <p>A person creates a craft project at a table.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$55.13</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Create a craft project</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/dd3d5867-f6eb-483d-a215-361cb6554f88.html">
+      <div class="card-head">
+        <span class="card-icon">DD3D</span>
+        <h2 title="dd3d5867-f6eb-483d-a215-361cb6554f88">dd3d5867…</h2>
+      </div>
+      <p>A person is gardening by weeding and planting in a raised bed and pot.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>74</strong> annotated</span>
+        <span>$35.87</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Garden by weeding and planting.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/e1e76763-56f2-4ab6-a7e1-9614384a17ad.html">
+      <div class="card-head">
+        <span class="card-icon">E1E7</span>
+        <h2 title="e1e76763-56f2-4ab6-a7e1-9614384a17ad">e1e76763…</h2>
+      </div>
+      <p>A person prepares a meal in a modern kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>71</strong> annotated</span>
+        <span>$58.77</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Prepare a meal.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/e2c54dce-845c-4ca7-a37f-aafa53c050ad.html">
+      <div class="card-head">
+        <span class="card-icon">E2C5</span>
+        <h2 title="e2c54dce-845c-4ca7-a37f-aafa53c050ad">e2c54dce…</h2>
+      </div>
+      <p>A man works on a woodworking project in a workshop.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>75</strong> annotated</span>
+        <span>$49.03</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Cut and assemble wood.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/e4f08b6f-e706-48f8-9d80-11c2153aab35.html">
+      <div class="card-head">
+        <span class="card-icon">E4F0</span>
+        <h2 title="e4f08b6f-e706-48f8-9d80-11c2153aab35">e4f08b6f…</h2>
+      </div>
+      <p>A person walks through a house, brushes their teeth, and exits the bathroom.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>71</strong> annotated</span>
+        <span>$63.06</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Walk and perform personal hygiene.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/ea99b807-0ac7-4ae7-ba2b-18838392f39e.html">
+      <div class="card-head">
+        <span class="card-icon">EA99</span>
+        <h2 title="ea99b807-0ac7-4ae7-ba2b-18838392f39e">ea99b807…</h2>
+      </div>
+      <p>A person repots a plant using a trowel and soil bag.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>78</strong> annotated</span>
+        <span>$4.23</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Repot a plant.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/edb5c7f4-636f-47e6-97f8-b27795aaeec5.html">
+      <div class="card-head">
+        <span class="card-icon">EDB5</span>
+        <h2 title="edb5c7f4-636f-47e6-97f8-b27795aaeec5">edb5c7f4…</h2>
+      </div>
+      <p>A person folds a cloth and transfers items between bags.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>97</strong> annotated</span>
+        <span>$7.52</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Fold a cloth and transfer items.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/f5066bbf-6383-4456-ad9f-3a67e9d0fd49.html">
+      <div class="card-head">
+        <span class="card-icon">F506</span>
+        <h2 title="f5066bbf-6383-4456-ad9f-3a67e9d0fd49">f5066bbf…</h2>
+      </div>
+      <p>A man sands and polishes a metal pipe using power tools.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>72</strong> annotated</span>
+        <span>$37.88</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Sand and polish a metal pipe.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/f75ea23d-ffa4-40f8-a825-e1e0bddb4e91.html">
+      <div class="card-head">
+        <span class="card-icon">F75E</span>
+        <h2 title="f75ea23d-ffa4-40f8-a825-e1e0bddb4e91">f75ea23d…</h2>
+      </div>
+      <p>Two people work together to complete a 1000-piece emoji jigsaw puzzle.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>71</strong> annotated</span>
+        <span>$11.38</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Complete a jigsaw puzzle.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/fa2363f4-3ffd-435e-886e-5630ff8df231.html">
+      <div class="card-head">
+        <span class="card-icon">FA23</span>
+        <h2 title="fa2363f4-3ffd-435e-886e-5630ff8df231">fa2363f4…</h2>
+      </div>
+      <p>A person knits a purple item in a living room.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>90</strong> annotated</span>
+        <span>$21.59</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Knit a purple item.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/fb82f807-a24c-4516-acdf-e099ba08b268.html">
+      <div class="card-head">
+        <span class="card-icon">FB82</span>
+        <h2 title="fb82f807-a24c-4516-acdf-e099ba08b268">fb82f807…</h2>
+      </div>
+      <p>A person prepares potatoes in the kitchen.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>70</strong> annotated</span>
+        <span>$1.66</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Prepare potatoes.</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+    <a class="card" href="viewers/fee05c7c-03bc-475f-b07e-191c16399610.html">
+      <div class="card-head">
+        <span class="card-icon">FEE0</span>
+        <h2 title="fee05c7c-03bc-475f-b07e-191c16399610">fee05c7c…</h2>
+      </div>
+      <p>A person cleans windows in a room.</p>
+      <div class="card-stats">
+        <span><strong>179s</strong></span>
+        <span><strong>671</strong> nodes</span>
+        <span><strong>77</strong> annotated</span>
+        <span>$1.13</span>
+      </div>
+      <div class="card-tags">
+        <span class="tag">action: Clean windows</span>
+      </div>
+      <span class="card-cta">Open viewer</span>
+    </a>
+  </section>
+
+  <div class="method">
+    <h3>Pipeline overview</h3>
+    <p>
+      <strong style="color:var(--text)">Stage 1.</strong> V-JEPA 2 ViT-g-384 frame embeddings (window=64, stride=8, res=384²)
+      → temporal-contiguous Ward agglomerative clustering → ~600+ tree nodes per clip.
+    </p>
+    <p>
+      <strong style="color:var(--text)">Stage 2.</strong> Leaf nodes captioned by <code>Llama-3.2-11B-Vision</code> on midpoint frame;
+      internal nodes captioned by <code>Perception-LM-3B</code> on 32 evenly-spaced frames at 320×320.
+    </p>
+    <p>
+      <strong style="color:var(--text)">Stage 3.</strong> Nodes ≥4s aggregated by <code>gpt-4o-2024-08-06</code>
+      using global-tree-context + current-subtree-markdown, with 3-round Self-Refine and JSON-Schema-strict
+      structured outputs (<code>{summary, action}</code>).
+    </p>
+    <p>
+      Full method documentation:
+      <a href="https://github.com/jxb1st/egoschema-action100m-viewer/blob/main/README.md">README</a> ·
+      Source code (private):
+      <code>streaming_benchmark/src/{stage1,stage2,stage3}_*.py</code>
+    </p>
+  </div>
+
+  <footer>
+    <span>Built with plain HTML + Plotly. Each viewer is a single-file page.</span>
+    <a href="https://github.com/jxb1st/egoschema-action100m-viewer">github.com/jxb1st/egoschema-action100m-viewer</a>
+  </footer>
+</div>
+
+<script>
+const input = document.getElementById('search');
+const cards = document.querySelectorAll('#grid .card');
+input.addEventListener('input', () => {
+  const q = input.value.toLowerCase();
+  cards.forEach(c => {
+    const text = c.textContent.toLowerCase();
+    c.classList.toggle('hidden', q && !text.includes(q));
+  });
+});
+</script>
+</body>
+</html>
